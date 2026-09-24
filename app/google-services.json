@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "129581653343",
+    "project_id": "novadrive-tv",
+    "storage_bucket": "novadrive-tv.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:129581653343:android:522343189f674f317c6aea",
+        "android_client_info": {
+          "package_name": "com.novadrive.tv"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "129581653343-96gtnkso87b29n5veha3rcf64e8gdemu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbpM7oZqjaRqH4q149lfYhCREDvGb0jh0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "129581653343-96gtnkso87b29n5veha3rcf64e8gdemu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
