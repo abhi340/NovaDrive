@@ -6,7 +6,6 @@ import coil.ImageLoader
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import com.example.tvdrive.auth.AuthManager
-import com.example.tvdrive.auth.DeviceAuthManager
 import com.example.tvdrive.data.local.TvDriveDatabase
 import com.example.tvdrive.data.remote.DriveRestClient
 import com.example.tvdrive.data.remote.PhotosRestClient
@@ -41,9 +40,6 @@ class AppContainer(private val app: Application) {
 
     /** Google Sign-In auth state manager */
     val authManager: AuthManager by lazy { AuthManager(app) }
-
-    /** Google OAuth 2.0 Device Flow (QR Code Sign-In) manager */
-    val deviceAuthManager: DeviceAuthManager by lazy { DeviceAuthManager(okHttpClient) }
 
     /** Room database — single instance */
     val database: TvDriveDatabase by lazy {
