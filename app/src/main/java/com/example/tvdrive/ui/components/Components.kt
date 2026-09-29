@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Article
@@ -208,17 +209,24 @@ fun GlassButton(
 }
 
 /**
- * Clean TV Grid Card for a Drive file or folder.
+ * Modern TV Grid Card for Drive files and folders.
+ * Features:
+ * - Distinct folder UI
+ * - Visual photo thumbnail preview before opening (like Windows Explorer)
+ * - Video thumbnail with prominent Play Icon overlay
+ * - Distinct PDF emblem card
  */
 @Composable
 fun FileCard(
     file: DriveFile,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    streamUrl: String? = null
 ) {
     TvFocusableItem(
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier.fillMaxWidth().height(168.dp),
+        cornerRadius = 14.dp
     ) { focused ->
         val cardBg = if (focused) Color(0xFFEFF6FF) else Color(0xFFFFFFFF)
         val borderCol = if (focused) Color(0xFF2563EB) else Color(0xFFE2E8F0)
@@ -229,43 +237,207 @@ fun FileCard(
                 .fillMaxSize()
                 .background(cardBg, RoundedCornerShape(14.dp))
                 .border(borderWidth, borderCol, RoundedCornerShape(14.dp))
-                .padding(12.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+                .padding(8.dp)
         ) {
+            // Upper Preview Area (Fixed 112.dp so items never collapse)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .height(112.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .background(Color(0xFFF1F5F9)),
                 contentAlignment = Alignment.Center
             ) {
-                if (file.thumbnailLink != null && (file.isImage || file.isVideo)) {
-                    AsyncImage(
-                        model = file.thumbnailLink,
-                        contentDescription = file.name,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Icon(
-                        imageVector = file.fileCategory.iconVector,
-                        contentDescription = null,
-                        tint = file.fileCategory.iconColor,
-                        modifier = Modifier.size(36.dp)
-                    )
+                when {
+                    file.isFolder -> {
+                        // Folder UI: prominent blue folder tile
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(Color(0xFFDBEAFE)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Folder,
+                                contentDescription = null,
+                                tint = Color(0xFF2563EB),
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+                    }
+                    file.isImage -> {
+                        // Image Thumbnail Preview
+                        val thumb = file.thumbnailLink ?: streamUrl
+                        if (!thumb.isNullOrBlank()) {
+                            AsyncImage(
+                                model = thumb,
+                                contentDescription = file.name,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Rounded.Image,
+                                contentDescription = null,
+                                tint = Color(0xFF059669),
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+                    }
+                    file.isVideo -> {
+                        // Video Thumbnail Preview with Play Icon Overlay
+                        val thumb = file.thumbnailLink ?: streamUrl
+                        if (!thumb.isNullOrBlank()) {
+                            AsyncImage(
+                                model = thumb,
+                                contentDescription = file.name,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color(0xFF1E293B)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Movie,
+                                    contentDescription = null,
+                                    tint = Color.White.copy(alpha = 0.5f),
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+                        }
+
+                        // Video Play Icon Overlay (Center Glass Badge)
+                        Box(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.65f))
+                                .border(1.dp, Color.White.copy(alpha = 0.6f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.PlayArrow,
+                                contentDescription = "Play Video",
+                                tint = Color.White,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+
+                        // Top-right "VIDEO" tag
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(6.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(Color.Black.copy(alpha = 0.7f))
+                                .padding(horizontal = 5.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "VIDEO",
+                                color = Color.White,
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.5.sp
+                            )
+                        }
+                    }
+                    file.isPdf -> {
+                        // PDF Preview Card
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color(0xFFFEF2F2)),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.PictureAsPdf,
+                                contentDescription = null,
+                                tint = Color(0xFFDC2626),
+                                modifier = Modifier.size(40.dp)
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(Color(0xFFDC2626))
+                                    .padding(horizontal = 6.dp, vertical = 1.dp)
+                            ) {
+                                Text(
+                                    text = "PDF",
+                                    color = Color.White,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+                            }
+                        }
+                    }
+                    file.isAudio -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color(0xFFFAF5FF)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Audiotrack,
+                                contentDescription = null,
+                                tint = Color(0xFF7C3AED),
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+                    }
+                    else -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color(0xFFF8FAFC)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = file.fileCategory.iconVector,
+                                contentDescription = null,
+                                tint = file.fileCategory.iconColor,
+                                modifier = Modifier.size(38.dp)
+                            )
+                        }
+                    }
                 }
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(6.dp))
 
+            // File Name
             Text(
                 text = file.name,
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (focused) Color(0xFF2563EB) else Color(0xFF0F172A),
                 fontWeight = if (focused) FontWeight.Bold else FontWeight.SemiBold,
+                fontSize = 13.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
+            )
+
+            // Subtitle Description (Folder, Video, Photo, PDF, etc.)
+            val typeDesc = when {
+                file.isFolder -> "Folder"
+                file.isVideo  -> "Video"
+                file.isImage  -> "Photo"
+                file.isPdf    -> "PDF Document"
+                file.isAudio  -> "Audio"
+                file.isDocument -> "Document"
+                else -> file.name.substringAfterLast('.', "").uppercase().ifEmpty { "File" }
+            }
+            Text(
+                text = typeDesc,
+                color = if (focused) Color(0xFF3B82F6) else Color(0xFF94A3B8),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium
             )
         }
     }

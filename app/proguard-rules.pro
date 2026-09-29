@@ -16,3 +16,10 @@
 # Data Models
 -keep class com.example.tvdrive.data.model.** { *; }
 -keep class com.example.tvdrive.data.local.** { *; }
+
+# Google Play Services & Firebase Auth
+-keep class com.google.android.gms.auth.api.signin.** { *; }
+-keep class com.google.android.gms.common.api.** { *; }
+-dontwarn com.google.android.gms.**
+-dontwarn com.google.firebase.**
+

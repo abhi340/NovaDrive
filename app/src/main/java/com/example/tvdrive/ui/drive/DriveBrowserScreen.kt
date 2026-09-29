@@ -231,6 +231,7 @@ fun DriveBrowserScreen(
                         items(s.files, key = { it.id }) { file ->
                             FileCard(
                                 file = file,
+                                streamUrl = vm.streamUrl(file.id),
                                 onClick = {
                                     handleFileClick(
                                         file = file,

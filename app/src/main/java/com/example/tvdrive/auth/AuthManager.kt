@@ -69,7 +69,11 @@ class AuthManager(private val context: Context) {
                 directAccessToken = storedToken
             )
         } else {
-            val account = GoogleSignIn.getLastSignedInAccount(context)
+            val account = try {
+                GoogleSignIn.getLastSignedInAccount(context)
+            } catch (_: Exception) {
+                null
+            }
             _authState.value = if (account != null && hasRequiredScopes(account)) {
                 AuthState.SignedIn(account)
             } else {
@@ -92,7 +96,19 @@ class AuthManager(private val context: Context) {
             }
             AuthState.SignedIn(account).also { _authState.value = it }
         } catch (e: Exception) {
-            AuthState.Error(e.message ?: "Sign-in failed").also { _authState.value = it }
+            val errorMsg = when {
+                e is com.google.android.gms.common.api.ApiException -> {
+                    when (e.statusCode) {
+                        12500 -> "Sign-in failed (12500). Ensure Google Play Services is updated and account has permission."
+                        10 -> "Configuration error (10). SHA-1 fingerprint or client configuration mismatch."
+                        7 -> "Network error (7). Please check your TV Internet connection."
+                        16 -> "Sign-in cancelled."
+                        else -> "Sign-in error (${e.statusCode}): ${e.localizedMessage ?: "Failed"}"
+                    }
+                }
+                else -> e.message ?: "Sign-in failed"
+            }
+            AuthState.Error(errorMsg).also { _authState.value = it }
         }
     }
 

@@ -32,7 +32,7 @@ class PhotosRestClient(
             if (pageToken != null) append("&pageToken=$pageToken")
         }
         val json = getJson(photosUrl, tok)
-        val arr = json?.optJSONArray("albums")
+        val arr = json.optJSONArray("albums")
         if (arr != null && arr.length() > 0) {
             val albums = (0 until arr.length()).map { i ->
                 val a = arr.getJSONObject(i)
@@ -62,8 +62,8 @@ class PhotosRestClient(
                 if (pageToken != null) put("pageToken", pageToken)
             }
             val json = postJson("$PHOTOS_API/mediaItems:search", tok, body)
-            val items = json?.let { parseMediaItems(it) } ?: emptyList()
-            PhotosPageResult(items, json?.optString("nextPageToken")?.ifEmpty { null })
+            val items = parseMediaItems(json)
+            PhotosPageResult(items, json.optString("nextPageToken").ifEmpty { null })
         }
 
     suspend fun listAllPhotos(pageToken: String? = null): PhotosPageResult<PhotosMediaItem> =
@@ -79,11 +79,11 @@ class PhotosRestClient(
                 if (pageToken != null) append("&pageToken=$pageToken")
             }
             val json = getJson(photosUrl, tok)
-            val items = json?.let { parseMediaItems(it) } ?: emptyList()
+            val items = parseMediaItems(json)
             if (items.isNotEmpty()) {
                 android.util.Log.d("PhotosRestClient", "Loaded ${items.size} items from Photos Library API")
             }
-            PhotosPageResult(items, json?.optString("nextPageToken")?.ifEmpty { null })
+            PhotosPageResult(items, json.optString("nextPageToken").ifEmpty { null })
         }
 
 
@@ -99,7 +99,7 @@ class PhotosRestClient(
         }
     }
 
-    private fun getJson(url: String, token: String): JSONObject? {
+    private fun getJson(url: String, token: String): JSONObject {
         return try {
             var tok = token
             var resp = okHttpClient.newCall(
@@ -124,51 +124,44 @@ class PhotosRestClient(
             val bodyString = resp.body?.string()
             if (!resp.isSuccessful) {
                 android.util.Log.e("PhotosRestClient", "GET $url failed HTTP ${resp.code}: $bodyString")
-                null
-            } else {
-                JSONObject(bodyString ?: return null)
+                throw java.io.IOException(if (resp.code == 403) "Google Photos access forbidden (HTTP 403). Check API and permissions." else "Google Photos error: HTTP ${resp.code}")
             }
+            JSONObject(bodyString ?: throw java.io.IOException("Empty response from Google Photos"))
         } catch (e: Exception) {
             android.util.Log.e("PhotosRestClient", "GET $url error", e)
-            null
+            throw e
         }
     }
 
-    private fun postJson(url: String, token: String, body: JSONObject): JSONObject? {
-        return try {
-            var tok = token
-            var resp = okHttpClient.newCall(
-                Request.Builder()
-                    .url(url)
-                    .addHeader("Authorization", "Bearer $tok")
-                    .post(body.toString().toRequestBody("application/json".toMediaType()))
-                    .build()
-            ).execute()
-            if (resp.code == 401) {
-                android.util.Log.w("PhotosRestClient", "HTTP 401 for $url. Invalidate and refresh token...")
-                val freshTok = authManager.invalidateAndRefresh()
-                if (!freshTok.isNullOrBlank()) {
-                    tok = freshTok
-                    resp = okHttpClient.newCall(
-                        Request.Builder()
-                            .url(url)
-                            .addHeader("Authorization", "Bearer $tok")
-                            .post(body.toString().toRequestBody("application/json".toMediaType()))
-                            .build()
-                    ).execute()
-                }
+    private fun postJson(url: String, token: String, body: JSONObject): JSONObject {
+        var tok = token
+        var resp = okHttpClient.newCall(
+            Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer $tok")
+                .post(body.toString().toRequestBody("application/json".toMediaType()))
+                .build()
+        ).execute()
+        if (resp.code == 401) {
+            android.util.Log.w("PhotosRestClient", "HTTP 401 for $url. Invalidate and refresh token...")
+            val freshTok = authManager.invalidateAndRefresh()
+            if (!freshTok.isNullOrBlank()) {
+                tok = freshTok
+                resp = okHttpClient.newCall(
+                    Request.Builder()
+                        .url(url)
+                        .addHeader("Authorization", "Bearer $tok")
+                        .post(body.toString().toRequestBody("application/json".toMediaType()))
+                        .build()
+                ).execute()
             }
-            val bodyString = resp.body?.string()
-            if (!resp.isSuccessful) {
-                android.util.Log.e("PhotosRestClient", "POST $url failed HTTP ${resp.code}: $bodyString")
-                null
-            } else {
-                JSONObject(bodyString ?: return null)
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("PhotosRestClient", "POST $url error", e)
-            null
         }
+        val bodyString = resp.body?.string()
+        if (!resp.isSuccessful) {
+            android.util.Log.e("PhotosRestClient", "POST $url failed HTTP ${resp.code}: $bodyString")
+            throw java.io.IOException(if (resp.code == 403) "Google Photos access forbidden (HTTP 403). Check API and permissions." else "Google Photos error: HTTP ${resp.code}")
+        }
+        return JSONObject(bodyString ?: throw java.io.IOException("Empty response from Google Photos"))
     }
 
     private fun parseMediaItems(json: JSONObject): List<PhotosMediaItem> {

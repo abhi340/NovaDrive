@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "129581653343-ioem3atefalin9f78n7jf7ee8rq1uhfa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.novadrive.tv",
+            "certificate_hash": "f25b40fbe69f6f46344bf6bed73ece7265f52396"
+          }
+        },
+        {
           "client_id": "129581653343-96gtnkso87b29n5veha3rcf64e8gdemu.apps.googleusercontent.com",
           "client_type": 3
         }
