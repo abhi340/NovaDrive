@@ -160,6 +160,7 @@ fun AppNavHost(
             is Screen.Albums -> AlbumsScreen(
                 onOpenAlbum = { id, title -> viewModel.navigate(Screen.AlbumDetail(id, title)) },
                 onViewImage = { urls, idx, title -> viewModel.navigate(Screen.ImageViewer(urls, idx, title)) },
+                onPlayVideo = { url, id, title -> viewModel.navigate(Screen.VideoPlayer(url, id, title)) },
                 onStartSlideshow = { urls -> viewModel.navigate(Screen.Slideshow(null, urls)) },
                 onBack = { viewModel.back() }
             )

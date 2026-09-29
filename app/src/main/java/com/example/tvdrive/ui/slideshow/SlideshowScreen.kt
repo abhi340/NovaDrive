@@ -175,15 +175,36 @@ fun SlideshowScreen(
                 }
             }
         } else {
-            // Current Slide Image
+            // 1. Ambient Backdrop Fill (avoids harsh black pillarboxing on portrait photos)
+            val currentSlideUrl = imageUrls.getOrNull(currentIndex)
+            if (currentSlideUrl != null) {
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(currentSlideUrl)
+                        .crossfade(600)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer { alpha = 0.25f }
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f))
+                )
+            }
+
+            // 2. Main Photo with full-composition fidelity and gentle Ken Burns motion
             AsyncImage(
                 model = ImageRequest.Builder(context)
-                    .data(imageUrls.getOrNull(currentIndex))
+                    .data(currentSlideUrl)
                     .size(1920, 1080)
                     .crossfade(600)
                     .build(),
                 contentDescription = "Slideshow photo ${currentIndex + 1}",
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {

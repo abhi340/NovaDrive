@@ -96,6 +96,7 @@ fun AlbumsScreen(
     onOpenAlbum: (albumId: String, title: String) -> Unit,
     onViewImage: (urls: List<String>, idx: Int, title: String) -> Unit,
     onStartSlideshow: (urls: List<String>) -> Unit,
+    onPlayVideo: ((url: String, id: String, title: String) -> Unit)? = null,
     onBack: () -> Unit
 ) {
     val container = LocalAppContainer.current
@@ -258,9 +259,13 @@ fun AlbumsScreen(
                                     item = photo,
                                     thumbnailUrl = vm.thumbnailUrl(photo.baseUrl),
                                     onClick = {
-                                        val fullUrl = vm.fullResUrl(photo.baseUrl)
-                                        val idx = photoUrls.indexOf(fullUrl).coerceAtLeast(0)
-                                        onViewImage(photoUrls, idx, photo.filename)
+                                        if (photo.isVideo && onPlayVideo != null) {
+                                            onPlayVideo(vm.fullResUrl(photo.baseUrl), photo.id, photo.filename)
+                                        } else {
+                                            val fullUrl = vm.fullResUrl(photo.baseUrl)
+                                            val idx = photoUrls.indexOf(fullUrl).coerceAtLeast(0)
+                                            onViewImage(photoUrls, idx, photo.filename)
+                                        }
                                     }
                                 )
                             }
@@ -390,6 +395,36 @@ private fun PhotoItemCard(
                         )
                     )
             )
+
+            // Video indicator badge
+            if (item.isVideo) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Color.Black.copy(alpha = 0.65f))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.PlayArrow,
+                            contentDescription = "Video",
+                            tint = Color.White,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Text(
+                            text = "VIDEO",
+                            color = Color.White,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
 
             Text(
                 text = item.filename,
