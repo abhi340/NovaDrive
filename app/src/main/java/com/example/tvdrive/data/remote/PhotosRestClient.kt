@@ -86,18 +86,7 @@ class PhotosRestClient(
             PhotosPageResult(items, json?.optString("nextPageToken")?.ifEmpty { null })
         }
 
-    suspend fun searchMediaItems(query: String, pageToken: String? = null): PhotosPageResult<PhotosMediaItem> =
-        withContext(Dispatchers.IO) {
-            val tok = token() ?: return@withContext PhotosPageResult(emptyList(), null)
-            val body = JSONObject().apply {
-                put("pageSize", 50)
-                if (pageToken != null) put("pageToken", pageToken)
-            }
-            val json = postJson("$PHOTOS_API/mediaItems:search", tok, body)
-            val items = json?.let { parseMediaItems(it) } ?: emptyList()
-            val filtered = items.filter { it.filename.contains(query, ignoreCase = true) }
-            PhotosPageResult(filtered, json?.optString("nextPageToken")?.ifEmpty { null })
-        }
+
 
     /** Returns a URL for an image at the given pixel dimensions */
     fun imageUrl(baseUrl: String, widthPx: Int, heightPx: Int): String {

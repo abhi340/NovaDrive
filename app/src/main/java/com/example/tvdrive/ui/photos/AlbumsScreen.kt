@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -119,7 +120,7 @@ fun AlbumsScreen(
         ) {
             GlassButton(
                 text = "Back",
-                iconVector = Icons.Rounded.ArrowBack,
+                iconVector = Icons.AutoMirrored.Rounded.ArrowBack,
                 onClick = onBack
             )
 
@@ -536,7 +537,7 @@ fun AlbumDetailScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            GlassButton(text = "Back", iconVector = Icons.Rounded.ArrowBack, onClick = onBack)
+            GlassButton(text = "Back", iconVector = Icons.AutoMirrored.Rounded.ArrowBack, onClick = onBack)
             Box(
                 modifier = Modifier
                     .size(40.dp)

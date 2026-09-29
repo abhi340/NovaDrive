@@ -280,7 +280,7 @@ fun SignInScreen(
                             Text(
                                 text = when {
                                     isLoading -> "Contacting Google authentication..."
-                                    isError -> (currentFlow as DeviceFlowState.Error).message
+                                    currentFlow is DeviceFlowState.Error -> currentFlow.message
                                     else -> "Waiting for authorization on your device..."
                                 },
                                 color = if (isError) Color(0xFFDC2626) else Color(0xFF64748B),

@@ -6,10 +6,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Download
-import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.*
 import coil.annotation.ExperimentalCoilApi
@@ -67,7 +67,7 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "Back",
                             tint = if (focused) Color(0xFF2563EB) else Color(0xFF475569),
                             modifier = Modifier.size(18.dp)
@@ -119,7 +119,7 @@ fun SettingsScreen(
                         Spacer(Modifier.height(16.dp))
                         GlassButton(
                             text = "Sign Out",
-                            iconVector = Icons.Rounded.Logout,
+                            iconVector = Icons.AutoMirrored.Rounded.Logout,
                             isPrimary = true,
                             onClick = onSignOut,
                             modifier = Modifier.width(220.dp)

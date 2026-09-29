@@ -12,3 +12,4 @@ captures/
 !release/*.apk
 *.aab
 .agents/
+.kotlin/

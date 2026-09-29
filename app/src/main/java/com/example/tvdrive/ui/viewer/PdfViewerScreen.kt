@@ -1,7 +1,6 @@
 package com.example.tvdrive.ui.viewer
 
 import android.graphics.Bitmap
-import android.graphics.pdf.PdfDocument
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import androidx.compose.foundation.Image
@@ -10,6 +9,7 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -207,7 +207,7 @@ fun PdfViewerScreen(
                     )
                     GlassButton(
                         text = "Go Back",
-                        iconVector = Icons.Rounded.ArrowBack,
+                        iconVector = Icons.AutoMirrored.Rounded.ArrowBack,
                         onClick = onBack
                     )
                 }
@@ -230,7 +230,7 @@ fun PdfViewerScreen(
             ) {
                 GlassButton(
                     text = "Back",
-                    iconVector = Icons.Rounded.ArrowBack,
+                    iconVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     onClick = onBack
                 )
                 Text(
