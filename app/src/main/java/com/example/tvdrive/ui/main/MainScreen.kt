@@ -73,16 +73,8 @@ fun HomeScreen(
                     androidx.compose.foundation.Image(
                         painter = androidx.compose.ui.res.painterResource(id = com.example.tvdrive.R.drawable.app_logo),
                         contentDescription = "NovaDrive Logo",
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                    )
-                    Text(
-                        text = "NovaDrive",
-                        color = Color(0xFF0F172A),
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 24.sp,
-                        letterSpacing = 0.5.sp
+                        modifier = Modifier.height(36.dp),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Fit
                     )
                     Box(
                         modifier = Modifier
