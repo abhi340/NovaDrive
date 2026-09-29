@@ -196,27 +196,105 @@ fun AlbumsScreen(
                 CircularProgressIndicator(color = Color(0xFF059669))
             }
             is PhotosUiState.Error -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                Box(
+                    modifier = Modifier
+                        .width(520.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color.White)
+                        .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
+                        .padding(28.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Rounded.ErrorOutline,
-                        contentDescription = null,
-                        tint = Color(0xFFDC2626),
-                        modifier = Modifier.size(44.dp)
-                    )
-                    Text(
-                        text = s.message,
-                        color = Color(0xFF475569),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    GlassButton(
-                        text = "Retry",
-                        isPrimary = true,
-                        onClick = { vm.load() }
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(Color(0xFFEFF6FF)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.PhotoLibrary,
+                                contentDescription = null,
+                                tint = Color(0xFF2563EB),
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+
+                        Text(
+                            text = "Google Photos (In Development)",
+                            color = Color(0xFF0F172A),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Text(
+                            text = "Due to Google's updated Photos API policies, direct TV library browsing is currently under active development.",
+                            color = Color(0xFF475569),
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+
+                        // Cast Steps Card
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFFF8FAFC))
+                                .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(12.dp))
+                                .padding(14.dp)
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Cast,
+                                        contentDescription = null,
+                                        tint = Color(0xFF059669),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Text(
+                                        text = "How to view your Photos on TV right now:",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                        color = Color(0xFF0F172A)
+                                    )
+                                }
+                                Text(
+                                    text = "1. Open Google Photos on your Phone or PC (photos.google.com)\n" +
+                                           "2. Open any photo or album and tap the Cast icon\n" +
+                                           "3. Select this TV to view your memories on the big screen!",
+                                    color = Color(0xFF334155),
+                                    fontSize = 12.sp,
+                                    lineHeight = 18.sp
+                                )
+                            }
+                        }
+
+                        Text(
+                            text = "For support: abhicm019@gmail.com",
+                            color = Color(0xFF2563EB),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            GlassButton(
+                                text = "Go Back",
+                                isPrimary = true,
+                                onClick = onBack
+                            )
+                            GlassButton(
+                                text = "Retry",
+                                onClick = { vm.load() }
+                            )
+                        }
+                    }
                 }
             }
             is PhotosUiState.Success -> {

@@ -10,6 +10,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Cast
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.PhotoLibrary
@@ -45,6 +46,7 @@ fun HomeScreen(
     onOpenSettings: () -> Unit
 ) {
     val driveFocusRequester = remember { FocusRequester() }
+    var showPhotosDevDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         driveFocusRequester.requestFocus()
@@ -161,10 +163,10 @@ fun HomeScreen(
                     ServiceCard(
                         title = "Google Photos",
                         subtitle = "Browse picture albums, family memories, full-screen slideshows & clips",
-                        badgeText = "PHOTOS & MEMORIES",
+                        badgeText = "IN DEVELOPMENT",
                         iconVector = Icons.Rounded.PhotoLibrary,
                         accentColor = Color(0xFF059669),
-                        onClick = onOpenAlbums,
+                        onClick = { showPhotosDevDialog = true },
                         modifier = Modifier
                             .width(380.dp)
                             .height(230.dp)
@@ -179,6 +181,120 @@ fun HomeScreen(
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 letterSpacing = 0.2.sp
+            )
+        }
+
+        // ── GOOGLE PHOTOS IN DEVELOPMENT DIALOG ──────────────────────────────
+        if (showPhotosDevDialog) {
+            val okFocusRequester = remember { FocusRequester() }
+            LaunchedEffect(Unit) {
+                okFocusRequester.requestFocus()
+            }
+
+            AlertDialog(
+                onDismissRequest = { showPhotosDevDialog = false },
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFFEFF6FF)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.PhotoLibrary,
+                                contentDescription = null,
+                                tint = Color(0xFF2563EB),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        Column {
+                            Text(
+                                text = "Google Photos (In Development)",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = Color(0xFF0F172A)
+                            )
+                            Text(
+                                text = "Direct TV sync coming soon",
+                                fontSize = 12.sp,
+                                color = Color(0xFF64748B)
+                            )
+                        }
+                    }
+                },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Text(
+                            text = "Due to Google's updated Photos API policies, direct TV library browsing is currently under active development.",
+                            color = Color(0xFF475569),
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp
+                        )
+
+                        // Cast Steps Card
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFFF8FAFC))
+                                .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(12.dp))
+                                .padding(14.dp)
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Cast,
+                                        contentDescription = null,
+                                        tint = Color(0xFF059669),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Text(
+                                        text = "How to view your Photos on TV right now:",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                        color = Color(0xFF0F172A)
+                                    )
+                                }
+                                Text(
+                                    text = "1. Open Google Photos on your Phone or PC (photos.google.com)\n" +
+                                           "2. Open any photo or album and tap the Cast icon\n" +
+                                           "3. Select this TV to view your memories on the big screen!",
+                                    color = Color(0xFF334155),
+                                    fontSize = 12.sp,
+                                    lineHeight = 19.sp
+                                )
+                            }
+                        }
+
+                        Text(
+                            text = "For support or early access: abhicm019@gmail.com",
+                            color = Color(0xFF2563EB),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                },
+                confirmButton = {
+                    GlassButton(
+                        text = "Got it",
+                        isPrimary = true,
+                        onClick = { showPhotosDevDialog = false },
+                        modifier = Modifier.focusRequester(okFocusRequester)
+                    )
+                },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(20.dp)
             )
         }
     }
