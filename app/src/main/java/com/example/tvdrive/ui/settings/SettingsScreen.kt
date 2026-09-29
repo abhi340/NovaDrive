@@ -31,7 +31,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen(
     onSignOut: () -> Unit,
-    onOpenDownloads: (() -> Unit)? = null,
     onBack: () -> Unit
 ) {
     val container = LocalAppContainer.current
@@ -158,15 +157,6 @@ fun SettingsScreen(
                                 },
                                 modifier = Modifier.width(220.dp)
                             )
-                            if (onOpenDownloads != null) {
-                                GlassButton(
-                                    text = "Offline Downloads",
-                                    iconVector = Icons.Rounded.Download,
-                                    isPrimary = false,
-                                    onClick = onOpenDownloads,
-                                    modifier = Modifier.width(220.dp)
-                                )
-                            }
                         }
                     }
                 }

@@ -42,8 +42,7 @@ fun HomeScreen(
     onOpenFolder: (id: String, name: String) -> Unit,
     onOpenAlbums: () -> Unit,
     onOpenSearch: () -> Unit,
-    onOpenSettings: () -> Unit,
-    onOpenDownloads: () -> Unit
+    onOpenSettings: () -> Unit
 ) {
     val driveFocusRequester = remember { FocusRequester() }
 
@@ -108,12 +107,6 @@ fun HomeScreen(
                         iconVector = Icons.Rounded.Search,
                         isPrimary = false,
                         onClick = onOpenSearch
-                    )
-                    GlassButton(
-                        text = "Downloads",
-                        iconVector = Icons.Rounded.Download,
-                        isPrimary = false,
-                        onClick = onOpenDownloads
                     )
                     GlassButton(
                         text = "Settings",

@@ -65,7 +65,6 @@ class DriveRepository(
     }
 
     fun streamUrl(fileId: String) = client.streamUrl(fileId)
-    suspend fun getToken() = client.getToken()
 }
 
 private fun DriveFileCacheEntity.toDomain() = DriveFile(

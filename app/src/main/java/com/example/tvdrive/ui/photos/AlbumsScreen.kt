@@ -471,3 +471,162 @@ private fun AlbumCard(album: PhotosAlbum, thumbnailUrl: String?, onClick: () -> 
         }
     }
 }
+
+// ── Album Detail ─────────────────────────────────────────────────────────────
+
+sealed class AlbumDetailUiState {
+    object Loading : AlbumDetailUiState()
+    data class Success(val items: List<PhotosMediaItem>) : AlbumDetailUiState()
+    data class Error(val message: String) : AlbumDetailUiState()
+}
+
+class AlbumDetailViewModel(
+    private val repository: PhotosRepository,
+    val albumId: String
+) : ViewModel() {
+    private val _state = MutableStateFlow<AlbumDetailUiState>(AlbumDetailUiState.Loading)
+    val state: StateFlow<AlbumDetailUiState> = _state
+
+    init { load() }
+
+    fun load() {
+        viewModelScope.launch {
+            _state.value = AlbumDetailUiState.Loading
+            repository.listMediaInAlbum(albumId)
+                .onSuccess { (items, _) -> _state.value = AlbumDetailUiState.Success(items) }
+                .onFailure { _state.value = AlbumDetailUiState.Error(it.message ?: "Failed to load media") }
+        }
+    }
+
+    fun thumbnailUrl(baseUrl: String) = repository.thumbnailUrl(baseUrl)
+    fun fullResUrl(baseUrl: String) = repository.fullResUrl(baseUrl)
+
+    class Factory(private val repo: PhotosRepository, private val albumId: String) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T = AlbumDetailViewModel(repo, albumId) as T
+    }
+}
+
+@Composable
+fun AlbumDetailScreen(
+    albumId: String,
+    albumTitle: String,
+    onViewImage: (urls: List<String>, startIdx: Int) -> Unit,
+    onPlayVideo: (url: String, id: String, title: String) -> Unit,
+    onSlideshow: () -> Unit,
+    onBack: () -> Unit
+) {
+    val container = LocalAppContainer.current
+    val vm: AlbumDetailViewModel = viewModel(
+        key = albumId,
+        factory = AlbumDetailViewModel.Factory(container.photosRepository, albumId)
+    )
+    val state by vm.state.collectAsState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF1F5F9))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(horizontal = 32.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            GlassButton(text = "Back", iconVector = Icons.Rounded.ArrowBack, onClick = onBack)
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color(0xFFECFDF5), RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.PhotoLibrary,
+                    contentDescription = null,
+                    tint = Color(0xFF059669),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Text(
+                text = albumTitle,
+                color = Color(0xFF0F172A),
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            GlassButton(text = "Slideshow", iconVector = Icons.Rounded.PlayArrow, isPrimary = true, onClick = onSlideshow)
+        }
+
+        when (val s = state) {
+            is AlbumDetailUiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Color(0xFF059669))
+            }
+            is AlbumDetailUiState.Error -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(imageVector = Icons.Rounded.ErrorOutline, contentDescription = null, tint = Color(0xFFDC2626), modifier = Modifier.size(44.dp))
+                    Text(text = s.message, color = Color(0xFF475569), fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                    GlassButton(text = "Retry", isPrimary = true, onClick = { vm.load() })
+                }
+            }
+            is AlbumDetailUiState.Success -> {
+                val imageUrls = remember(s.items) {
+                    s.items.filter { !it.isVideo }.map { vm.fullResUrl(it.baseUrl) }
+                }
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 200.dp),
+                    contentPadding = PaddingValues(24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(s.items, key = { it.id }) { item ->
+                        TvFocusableItem(
+                            onClick = {
+                                if (item.isVideo) {
+                                    onPlayVideo(vm.fullResUrl(item.baseUrl), item.id, item.filename)
+                                } else {
+                                    val idx = imageUrls.indexOf(vm.fullResUrl(item.baseUrl)).coerceAtLeast(0)
+                                    onViewImage(imageUrls, idx)
+                                }
+                            },
+                            modifier = Modifier.size(200.dp, 130.dp),
+                            cornerRadius = 14.dp
+                        ) { focused ->
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(if (focused) Color(0xFFEFF6FF) else Color(0xFFF8FAFC))
+                            ) {
+                                AsyncImage(
+                                    model = vm.thumbnailUrl(item.baseUrl),
+                                    contentDescription = item.filename,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                                if (item.isVideo) {
+                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.PlayCircle,
+                                            contentDescription = "Video",
+                                            tint = Color.White.copy(alpha = 0.9f),
+                                            modifier = Modifier.size(44.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+

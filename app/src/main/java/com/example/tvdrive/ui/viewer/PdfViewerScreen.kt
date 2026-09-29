@@ -56,16 +56,14 @@ fun PdfViewerScreen(
 
     // Render helper function
     fun renderPage(r: PdfRenderer, index: Int): Bitmap? {
-        if (index < 0 || index >= r.pageCount) return null
-        val page = r.openPage(index)
-        // High quality rendering for TV (1080p fit)
-        val targetWidth = 1920
-        val targetHeight = (targetWidth * page.height) / page.width
-        val bmp = Bitmap.createBitmap(targetWidth, targetHeight.coerceAtLeast(1080), Bitmap.Config.ARGB_8888)
-        bmp.eraseColor(android.graphics.Color.WHITE)
-        page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-        page.close()
-        return bmp
+        if (index !in 0 until r.pageCount) return null
+        return r.openPage(index).use { page ->
+            val targetHeight = (1920 * page.height) / page.width
+            Bitmap.createBitmap(1920, targetHeight.coerceAtLeast(1080), Bitmap.Config.ARGB_8888).apply {
+                eraseColor(android.graphics.Color.WHITE)
+                page.render(this, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+            }
+        }
     }
 
     // Load PDF file on launch

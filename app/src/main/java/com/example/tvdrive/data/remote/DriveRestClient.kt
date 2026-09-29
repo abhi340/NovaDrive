@@ -1,11 +1,7 @@
 package com.example.tvdrive.data.remote
 
-import android.content.Context
 import com.example.tvdrive.auth.AuthManager
-import com.example.tvdrive.auth.COMBINED_OAUTH_SCOPE
 import com.example.tvdrive.data.model.DriveFile
-import com.google.android.gms.auth.GoogleAuthUtil
-import com.google.android.gms.auth.api.signin.GoogleSignIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -15,7 +11,6 @@ import java.net.URLEncoder
 
 private const val DRIVE_API = "https://www.googleapis.com/drive/v3"
 private const val FILE_FIELDS = "nextPageToken,files(id,name,mimeType,size,modifiedTime,thumbnailLink,webContentLink,parents)"
-private const val DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly"
 
 /**
  * Lean Drive REST client using OkHttp.
@@ -88,8 +83,6 @@ class DriveRestClient(
         return "$DRIVE_API/files/$fileId?alt=media"
     }
 
-    /** Provides a token for OkHttp interceptors (e.g. ExoPlayer data source) */
-    suspend fun getToken(): String? = token()
 
     private fun parseFileListResult(json: JSONObject?): DrivePageResult {
         json ?: return DrivePageResult(emptyList(), null)

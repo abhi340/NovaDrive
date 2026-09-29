@@ -11,10 +11,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
-import java.net.URLEncoder
 
 private const val PHOTOS_API = "https://photoslibrary.googleapis.com/v1"
-private const val DRIVE_API = "https://www.googleapis.com/drive/v3"
 
 class PhotosRestClient(
     private val authManager: AuthManager,

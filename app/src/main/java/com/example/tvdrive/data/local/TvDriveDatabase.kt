@@ -39,18 +39,6 @@ data class PlaybackPosition(
     val updatedAt: Long = System.currentTimeMillis()
 )
 
-/** Tracks downloaded files. */
-@Entity(tableName = "downloads")
-data class DownloadEntity(
-    @PrimaryKey val fileId: String,
-    val fileName: String,
-    val mimeType: String,
-    val localPath: String,
-    val sizeBytes: Long = 0L,
-    val downloadedAt: Long = System.currentTimeMillis(),
-    val status: String = "COMPLETED"  // PENDING | IN_PROGRESS | COMPLETED | FAILED
-)
-
 // ── DAOs ──────────────────────────────────────────────────────────────────────
 
 @Dao
@@ -81,30 +69,14 @@ interface PlaybackPositionDao {
     suspend fun upsert(position: PlaybackPosition)
 }
 
-@Dao
-interface DownloadDao {
-    @Query("SELECT * FROM downloads ORDER BY downloadedAt DESC")
-    fun observeAll(): Flow<List<DownloadEntity>>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(download: DownloadEntity)
-
-    @Query("DELETE FROM downloads WHERE fileId = :fileId")
-    suspend fun delete(fileId: String)
-
-    @Query("SELECT * FROM downloads WHERE fileId = :fileId")
-    suspend fun get(fileId: String): DownloadEntity?
-}
-
 // ── Database ──────────────────────────────────────────────────────────────────
 
 @Database(
-    entities = [DriveFileCacheEntity::class, PlaybackPosition::class, DownloadEntity::class],
+    entities = [DriveFileCacheEntity::class, PlaybackPosition::class],
     version = 1,
-    exportSchema = true
+    exportSchema = false
 )
 abstract class TvDriveDatabase : RoomDatabase() {
     abstract fun driveFileCacheDao(): DriveFileCacheDao
     abstract fun playbackPositionDao(): PlaybackPositionDao
-    abstract fun downloadDao(): DownloadDao
 }
