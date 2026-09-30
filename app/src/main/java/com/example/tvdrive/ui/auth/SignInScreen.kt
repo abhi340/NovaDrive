@@ -17,43 +17,25 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.tvdrive.LocalAppContainer
 import com.example.tvdrive.R
 import com.example.tvdrive.auth.AuthState
-import com.example.tvdrive.auth.DeviceFlowState
 import com.example.tvdrive.ui.components.AmbientGlowBackground
 import com.example.tvdrive.ui.components.GlassBox
 import com.example.tvdrive.ui.components.GlassButton
-import com.example.tvdrive.ui.components.QrCodeImage
 
 @Composable
 fun SignInScreen(
     authState: AuthState,
     onStartSignIn: () -> Unit
 ) {
-    val container = LocalAppContainer.current
-    val deviceFlowState by container.deviceAuthManager.deviceFlowState.collectAsState()
-    val tvSignInFocusRequester = remember { FocusRequester() }
+    val signInFocusRequester = remember { FocusRequester() }
 
-    // Start device code flow on entry
     LaunchedEffect(Unit) {
-        if (deviceFlowState is DeviceFlowState.Idle || deviceFlowState is DeviceFlowState.Error) {
-            container.deviceAuthManager.startDeviceFlow { accessToken, refreshToken, expiresIn, email ->
-                container.authManager.saveManualToken(accessToken, refreshToken, expiresIn, email)
-            }
-        }
-        tvSignInFocusRequester.requestFocus()
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            container.deviceAuthManager.cancel()
-        }
+        signInFocusRequester.requestFocus()
     }
 
     AmbientGlowBackground {
@@ -96,267 +78,123 @@ fun SignInScreen(
                 )
             }
 
-            // ── MAIN DUAL SIGN-IN CARD ───────────────────────────────────────
+            // ── CENTER WELCOME CARD ──────────────────────────────────────────
             GlassBox(
                 modifier = Modifier
-                    .width(880.dp)
+                    .width(520.dp)
                     .wrapContentHeight(),
                 shape = RoundedCornerShape(24.dp),
                 backgroundColor = Color.White,
                 borderColor = Color(0xFFE2E8F0),
                 borderWidth = 1.dp
             ) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(32.dp),
-                    horizontalArrangement = Arrangement.spacedBy(36.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(horizontal = 40.dp, vertical = 36.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    // ── LEFT: PHONE / QR CODE FLOW (Google RFC 8628) ────────
-                    Column(
-                        modifier = Modifier
-                            .weight(1.15f),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.QrCodeScanner,
-                                contentDescription = null,
-                                tint = Color(0xFF2563EB),
-                                modifier = Modifier.size(22.dp)
-                            )
-                            Text(
-                                text = "Sign in via Phone / PC",
-                                color = Color(0xFF0F172A),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
-                            )
-                        }
-
-                        Text(
-                            text = "Scan with your phone camera or visit google.com/device",
-                            color = Color(0xFF64748B),
-                            fontSize = 12.sp,
-                            textAlign = TextAlign.Center
-                        )
-
-                        when (val state = deviceFlowState) {
-                            is DeviceFlowState.Loading -> {
-                                Box(
-                                    modifier = Modifier
-                                        .size(170.dp)
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(Color(0xFFF8FAFC)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator(
-                                        color = Color(0xFF2563EB),
-                                        modifier = Modifier.size(32.dp),
-                                        strokeWidth = 3.dp
-                                    )
-                                }
-                            }
-
-                            is DeviceFlowState.CodeReady -> {
-                                QrCodeImage(
-                                    content = state.directQrUrl,
-                                    size = 160.dp
-                                )
-
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(Color(0xFFEFF6FF))
-                                        .border(1.dp, Color(0xFFBFDBFE), RoundedCornerShape(8.dp))
-                                        .padding(horizontal = 14.dp, vertical = 6.dp)
-                                ) {
-                                    Text(
-                                        text = state.userCode,
-                                        color = Color(0xFF1E40AF),
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        fontFamily = FontFamily.Monospace,
-                                        letterSpacing = 2.sp
-                                    )
-                                }
-
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    CircularProgressIndicator(
-                                        color = Color(0xFF2563EB),
-                                        modifier = Modifier.size(12.dp),
-                                        strokeWidth = 2.dp
-                                    )
-                                    Text(
-                                        text = "Waiting for authorization on phone...",
-                                        color = Color(0xFF64748B),
-                                        fontSize = 11.sp
-                                    )
-                                }
-                            }
-
-                            is DeviceFlowState.Success -> {
-                                Box(
-                                    modifier = Modifier
-                                        .size(170.dp)
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(Color(0xFFECFDF5)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Rounded.CheckCircle,
-                                            contentDescription = null,
-                                            tint = Color(0xFF059669),
-                                            modifier = Modifier.size(40.dp)
-                                        )
-                                        Text(
-                                            text = "Connected!",
-                                            color = Color(0xFF059669),
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 14.sp
-                                        )
-                                    }
-                                }
-                            }
-
-                            is DeviceFlowState.Error -> {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Text(
-                                        text = state.message,
-                                        color = Color(0xFFDC2626),
-                                        fontSize = 12.sp,
-                                        textAlign = TextAlign.Center
-                                    )
-                                    GlassButton(
-                                        text = "Reload QR Code",
-                                        iconVector = Icons.Rounded.Refresh,
-                                        onClick = {
-                                            container.deviceAuthManager.startDeviceFlow { acc, ref, exp, em ->
-                                                container.authManager.saveManualToken(acc, ref, exp, em)
-                                            }
-                                        }
-                                    )
-                                }
-                            }
-
-                            else -> Unit
-                        }
-                    }
-
-                    // ── VERTICAL DIVIDER ────────────────────────────────────
+                    // Feature Icon
                     Box(
                         modifier = Modifier
-                            .width(1.dp)
-                            .height(240.dp)
-                            .background(Color(0xFFE2E8F0))
+                            .size(64.dp)
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(Color(0xFFEFF6FF)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.CloudQueue,
+                            contentDescription = null,
+                            tint = Color(0xFF2563EB),
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
+
+                    Text(
+                        text = "Welcome to NovaDrive",
+                        color = Color(0xFF0F172A),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp
                     )
 
-                    // ── RIGHT: TV 1-CLICK REMOTE SIGN-IN ────────────────────
-                    Column(
-                        modifier = Modifier
-                            .weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
+                    Text(
+                        text = "Access your Google Drive files, videos, documents, and media seamlessly on your Android TV.",
+                        color = Color(0xFF64748B),
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(Modifier.height(4.dp))
+
+                    if (authState is AuthState.Loading) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Tv,
-                                contentDescription = null,
-                                tint = Color(0xFF475569),
-                                modifier = Modifier.size(22.dp)
+                            CircularProgressIndicator(
+                                color = Color(0xFF2563EB),
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.5.dp
                             )
                             Text(
-                                text = "Sign in on TV",
-                                color = Color(0xFF0F172A),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
+                                text = "Connecting account...",
+                                color = Color(0xFF2563EB),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
                             )
                         }
-
-                        Text(
-                            text = "Use the Google account already signed into this Android TV device.",
-                            color = Color(0xFF64748B),
-                            fontSize = 12.sp,
-                            lineHeight = 17.sp,
-                            textAlign = TextAlign.Center
+                    } else {
+                        GlassButton(
+                            text = "Sign in with Google Account",
+                            iconVector = Icons.Rounded.AccountCircle,
+                            isPrimary = true,
+                            onClick = onStartSignIn,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp)
+                                .focusRequester(signInFocusRequester)
                         )
+                    }
 
-                        Spacer(Modifier.height(4.dp))
-
-                        if (authState is AuthState.Loading) {
+                    if (authState is AuthState.Error) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Color(0xFFFEF2F2))
+                                .border(1.dp, Color(0xFFFECACA), RoundedCornerShape(10.dp))
+                                .padding(12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                CircularProgressIndicator(
-                                    color = Color(0xFF2563EB),
-                                    modifier = Modifier.size(20.dp),
-                                    strokeWidth = 2.dp
+                                Icon(
+                                    imageVector = Icons.Rounded.ErrorOutline,
+                                    contentDescription = null,
+                                    tint = Color(0xFFDC2626),
+                                    modifier = Modifier.size(18.dp)
                                 )
-                                Text(
-                                    text = "Connecting...",
-                                    color = Color(0xFF2563EB),
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        } else {
-                            GlassButton(
-                                text = "Sign in on TV",
-                                iconVector = Icons.Rounded.AccountCircle,
-                                isPrimary = true,
-                                onClick = onStartSignIn,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp)
-                                    .focusRequester(tvSignInFocusRequester)
-                            )
-                        }
-
-                        if (authState is AuthState.Error) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Color(0xFFFEF2F2))
-                                    .border(1.dp, Color(0xFFFECACA), RoundedCornerShape(8.dp))
-                                    .padding(10.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
                                 Text(
                                     text = authState.message,
                                     color = Color(0xFFDC2626),
-                                    fontSize = 11.sp,
+                                    fontSize = 12.sp,
                                     fontWeight = FontWeight.Medium,
                                     textAlign = TextAlign.Center
                                 )
                             }
                         }
-
-                        Text(
-                            text = "Tip: Phone QR code bypasses TV Play Services limitations.",
-                            color = Color(0xFF94A3B8),
-                            fontSize = 11.sp,
-                            textAlign = TextAlign.Center
-                        )
                     }
+
+                    Text(
+                        text = "Secured via official Google Play Services",
+                        color = Color(0xFF94A3B8),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal
+                    )
                 }
             }
 

@@ -97,12 +97,13 @@ class AuthManager(private val context: Context) {
         } catch (e: Exception) {
             val errorMsg = when {
                 e is com.google.android.gms.common.api.ApiException -> {
+                    val detail = e.status.statusMessage?.takeIf { it.isNotBlank() } ?: e.localizedMessage
                     when (e.statusCode) {
-                        12500 -> "Sign-in failed (12500). Please ensure Google Drive API is enabled, or use Phone QR Sign-In."
+                        12500 -> if (!detail.isNullOrBlank()) "Sign-in failed (12500): $detail" else "Sign-in failed (12500). Please check TV Google Play Services."
                         10 -> "Configuration error (10). SHA-1 fingerprint or client configuration mismatch."
                         7 -> "Network error (7). Please check your TV Internet connection."
                         16 -> "Sign-in cancelled."
-                        else -> "Sign-in error (${e.statusCode}): ${e.localizedMessage ?: "Failed"}"
+                        else -> "Sign-in error (${e.statusCode}): ${detail ?: "Failed"}"
                     }
                 }
                 else -> e.message ?: "Sign-in failed"
