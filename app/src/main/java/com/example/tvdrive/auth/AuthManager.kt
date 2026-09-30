@@ -47,8 +47,6 @@ class AuthManager(private val context: Context) {
     private val signInClient: GoogleSignInClient by lazy {
         val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
-            .requestIdToken(FIREBASE_WEB_CLIENT_ID)
-            .requestScopes(Scope(DRIVE_SCOPE))
             .build()
         GoogleSignIn.getClient(context, options)
     }
@@ -86,13 +84,6 @@ class AuthManager(private val context: Context) {
     suspend fun handleSignInResult(data: Intent?): AuthState {
         return try {
             val account = GoogleSignIn.getSignedInAccountFromIntent(data).await()
-            val idToken = account.idToken
-            if (!idToken.isNullOrBlank()) {
-                try {
-                    val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null)
-                    com.google.firebase.auth.FirebaseAuth.getInstance().signInWithCredential(credential).await()
-                } catch (_: Exception) {}
-            }
             AuthState.SignedIn(account).also { _authState.value = it }
         } catch (e: Exception) {
             val errorMsg = when {
@@ -191,6 +182,15 @@ class AuthManager(private val context: Context) {
             val tok = GoogleAuthUtil.getToken(context, account.account!!, COMBINED_OAUTH_SCOPE)
             lastGoogleAuthToken = tok
             tok
+        } catch (e: com.google.android.gms.auth.UserRecoverableAuthException) {
+            android.util.Log.w("AuthManager", "UserRecoverableAuthException: launching consent intent...", e)
+            try {
+                e.intent?.let { intent ->
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(intent)
+                }
+            } catch (_: Exception) {}
+            null
         } catch (e: Exception) {
             android.util.Log.e("AuthManager", "getAccessTokenSync failed", e)
             null
@@ -265,7 +265,7 @@ class AuthManager(private val context: Context) {
     }
 
     private fun hasRequiredScopes(account: GoogleSignInAccount): Boolean =
-        GoogleSignIn.hasPermissions(account, Scope(DRIVE_SCOPE))
+        account.account != null || !account.email.isNullOrBlank()
 }
 
 sealed class AuthState {
