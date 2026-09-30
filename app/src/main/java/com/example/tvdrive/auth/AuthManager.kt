@@ -20,9 +20,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 
 private const val DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly"
-private const val PHOTOS_SCOPE = "https://www.googleapis.com/auth/photoslibrary.readonly"
-/** Combined OAuth2 scope string for GoogleAuthUtil.getToken() */
-const val COMBINED_OAUTH_SCOPE = "oauth2:$DRIVE_SCOPE $PHOTOS_SCOPE"
+/** OAuth2 scope string for GoogleAuthUtil.getToken() */
+const val COMBINED_OAUTH_SCOPE = "oauth2:$DRIVE_SCOPE"
 
 val FIREBASE_WEB_CLIENT_ID: String get() = com.example.tvdrive.BuildConfig.FIREBASE_WEB_CLIENT_ID
 val GOOGLE_TV_CLIENT_ID: String get() = com.example.tvdrive.BuildConfig.GOOGLE_TV_CLIENT_ID
@@ -49,7 +48,7 @@ class AuthManager(private val context: Context) {
         val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .requestIdToken(FIREBASE_WEB_CLIENT_ID)
-            .requestScopes(Scope(DRIVE_SCOPE), Scope(PHOTOS_SCOPE))
+            .requestScopes(Scope(DRIVE_SCOPE))
             .build()
         GoogleSignIn.getClient(context, options)
     }
@@ -99,7 +98,7 @@ class AuthManager(private val context: Context) {
             val errorMsg = when {
                 e is com.google.android.gms.common.api.ApiException -> {
                     when (e.statusCode) {
-                        12500 -> "Sign-in failed (12500). Ensure Google Play Services is updated and account has permission."
+                        12500 -> "Sign-in failed (12500). Please ensure Google Drive API is enabled, or use Phone QR Sign-In."
                         10 -> "Configuration error (10). SHA-1 fingerprint or client configuration mismatch."
                         7 -> "Network error (7). Please check your TV Internet connection."
                         16 -> "Sign-in cancelled."
@@ -247,8 +246,25 @@ class AuthManager(private val context: Context) {
         }
     }
 
+    fun saveManualToken(accessToken: String, refreshToken: String?, expiresInSeconds: Int, email: String) {
+        val expiresAt = System.currentTimeMillis() + (expiresInSeconds * 1000L)
+        prefs.edit().apply {
+            putString(KEY_ACCESS_TOKEN, accessToken)
+            putString(KEY_REFRESH_TOKEN, refreshToken)
+            putLong(KEY_EXPIRES_AT, expiresAt)
+            putString(KEY_EMAIL, email)
+            apply()
+        }
+        manualToken = accessToken
+        _authState.value = AuthState.SignedIn(
+            account = null,
+            email = email,
+            directAccessToken = accessToken
+        )
+    }
+
     private fun hasRequiredScopes(account: GoogleSignInAccount): Boolean =
-        GoogleSignIn.hasPermissions(account, Scope(DRIVE_SCOPE), Scope(PHOTOS_SCOPE))
+        GoogleSignIn.hasPermissions(account, Scope(DRIVE_SCOPE))
 }
 
 sealed class AuthState {
